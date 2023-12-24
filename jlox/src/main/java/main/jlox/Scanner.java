@@ -1,7 +1,9 @@
 package main.jlox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Scanner {
     private final String source;
@@ -9,6 +11,28 @@ public class Scanner {
     private int start = 0;
     private int current = 0;
     private int line = 1;
+
+    private static final Map<String, TokenType> RESERVED_KEYWORDS_MAP;
+
+    static {
+        RESERVED_KEYWORDS_MAP = new HashMap<>();
+        RESERVED_KEYWORDS_MAP.put("and", TokenType.AND);
+        RESERVED_KEYWORDS_MAP.put("class", TokenType.CLASS);
+        RESERVED_KEYWORDS_MAP.put("else", TokenType.ELSE);
+        RESERVED_KEYWORDS_MAP.put("false", TokenType.FALSE);
+        RESERVED_KEYWORDS_MAP.put("for", TokenType.FOR);
+        RESERVED_KEYWORDS_MAP.put("fun", TokenType.FUN);
+        RESERVED_KEYWORDS_MAP.put("if", TokenType.IF);
+        RESERVED_KEYWORDS_MAP.put("nil", TokenType.NIL);
+        RESERVED_KEYWORDS_MAP.put("or", TokenType.OR);
+        RESERVED_KEYWORDS_MAP.put("print", TokenType.PRINT);
+        RESERVED_KEYWORDS_MAP.put("return", TokenType.RETURN);
+        RESERVED_KEYWORDS_MAP.put("super", TokenType.SUPER);
+        RESERVED_KEYWORDS_MAP.put("this", TokenType.THIS);
+        RESERVED_KEYWORDS_MAP.put("true", TokenType.TRUE);
+        RESERVED_KEYWORDS_MAP.put("var", TokenType.VAR);
+        RESERVED_KEYWORDS_MAP.put("while", TokenType.WHILE);
+    }
 
     public Scanner(String source) {
         this.source = source;
@@ -90,7 +114,13 @@ public class Scanner {
                 string();
                 break;
             default:
-                Lox.error(line, "Unexpected character.");
+                if (isDigit(c)) {
+                    number();
+                } else if (isAlpha(c)) {
+                    identifier();
+                } else {
+                    Lox.error(line, "Unexpected character.");
+                }
                 break;
         }
     }
@@ -113,6 +143,37 @@ public class Scanner {
         // trim surrounding quotes
         String value = source.substring(start + 1, current - 1);
         addToken(TokenType.STRING, value);
+    }
+
+    private void number() {
+        while (isDigit(peek()))
+            advance();
+
+        // look for fractional part, signaled by '.'
+        if (peek() == '.' && isDigit(peekNext())) {
+            // consume the '.''
+            advance();
+
+            // read the rest of the digits
+            while (isDigit(peek()))
+                advance();
+        }
+
+        addToken(TokenType.NUMBER,
+                Double.parseDouble(source.substring(start, current)));
+    }
+
+    private void identifier() {
+        while (isAlphaNumeric(peek()))
+            advance();
+
+        String text = source.substring(start, current);
+        TokenType type = RESERVED_KEYWORDS_MAP.get(text);
+        if (type == null) {
+            type = TokenType.IDENTIFIER;
+        }
+
+        addToken(type);
     }
 
     private boolean isAtEnd() {
@@ -147,5 +208,25 @@ public class Scanner {
             return '\0';
 
         return source.charAt(current);
+    }
+
+    private char peekNext() {
+        if (current + 1 >= source.length())
+            return '\0';
+        return source.charAt(current + 1);
+    }
+
+    private boolean isDigit(char c) {
+        return c >= '0' && c <= '9';
+    }
+
+    private boolean isAlpha(char c) {
+        return (c >= 'a' && c <= 'z')
+                || (c >= 'A' && c <= 'Z')
+                || c == '_';
+    }
+
+    private boolean isAlphaNumeric(char c) {
+        return isAlpha(c) || isDigit(c);
     }
 }
