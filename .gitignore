@@ -1,3 +1,6 @@
 # jlox
-
 jlox/target/
+
+# clox
+clox/build/
+clox/clox
