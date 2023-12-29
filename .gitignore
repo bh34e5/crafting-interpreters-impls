@@ -4,3 +4,10 @@ jlox/target/
 # clox
 clox/build/
 clox/clox
+
+# nvim stuff / turned off format on save
+.ccls-cache/
+clox/src/.vim/
+
+# example files that I write for testing
+**/*.lx
