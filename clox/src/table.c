@@ -20,7 +20,11 @@ void freeTable(Table *table) {
 }
 
 static Entry *findEntry (Entry *entries, int capacity, ObjString *key) {
-    uint32_t index = key->hash % capacity;
+    // Upon profiling, one of the biggest hotspots was this % operator. Since we
+    // are using capacities that are powers, of two, we can replace this with an
+    // equivalent operation that runs much faster.
+    // uint32_t index = key->hash % capacity;
+    uint32_t index = key->hash & (capacity - 1);
 
     // this eventually terminates becuase we know there are empty buckets...
     // thanks load factor
@@ -38,7 +42,8 @@ static Entry *findEntry (Entry *entries, int capacity, ObjString *key) {
             return entry;
         }
 
-        index = (index + 1) % capacity;
+        // see above comment about optimization
+        index = (index + 1) & (capacity - 1);
     }
 }
 
@@ -119,7 +124,8 @@ ObjString *tableFindString(
         uint32_t hash) {
     if (table->count == 0) return NULL;
 
-    uint32_t index = hash % table->capacity;
+    // see notes in `findEntry`
+    uint32_t index = hash & (table->capacity - 1);
     for (;;) {
         Entry *entry = &table->entries[index];
         if (entry->key == NULL) {
@@ -130,7 +136,7 @@ ObjString *tableFindString(
             return entry->key;
         }
 
-        index = (index + 1) % table->capacity;
+        index = (index + 1) & (table->capacity - 1);
     }
 }
 
