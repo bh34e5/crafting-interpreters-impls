@@ -14,10 +14,10 @@ DEPFILES=$(patsubst $(SRC)/%.c,$(BUILD)/%.d,$(FILES))
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(CC) $^ -o $@
+	$(CC) -o $@ $^
 
 $(BUILD)/%.o: $(SRC)/%.c | $(BUILD)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BUILD):
 	mkdir -p $(BUILD)
