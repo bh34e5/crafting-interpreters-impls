@@ -383,6 +383,15 @@ static InterpretResult run() {
                 push(value);
                 break;
             }
+            case OP_GET_SUPER: {
+                ObjString *name = READ_STRING();
+                ObjClass *superclass = AS_CLASS(pop());
+
+                if (!bindMethod(superclass, name)) {
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                break;
+            }
             case OP_EQUAL: {
                 Value b = pop();
                 Value a = pop();
@@ -491,6 +500,23 @@ static InterpretResult run() {
             case OP_CLASS:
                 push(OBJ_VAL(newClass(READ_STRING())));
                 break;
+            case OP_INHERIT: {
+               Value superclass = peek(1);
+               if (!IS_CLASS(superclass)) {
+                   runtimeError("Superclass must be a class.");
+                   return INTERPRET_RUNTIME_ERROR;
+               }
+
+               ObjClass *subclass = AS_CLASS(peek(0));
+               // This only works because Lox has _closed inheritance_
+               // If we had open classes that, at runtime, could have other
+               // methods defined, then we would still have to hold a reference
+               // to the parent and do the inheritance walk up the chain to find
+               // methods.
+               tableAddAll(&AS_CLASS(superclass)->methods, &subclass->methods);
+               pop();
+               break;
+            }
             case OP_METHOD:
                 defineMethod(READ_STRING());
                 break;
