@@ -1,0 +1,72 @@
+var create;
+var add;
+var getX;
+var getY;
+
+fun init() {
+    fun x_getter(v) {
+        return v(x_getter);
+    }
+
+    fun y_getter(v) {
+        return v(y_getter);
+    }
+
+    fun closure_maker (x_val, y_val) {
+        fun vector (arg) {
+            if (arg == x_getter) {
+                return x_val;
+            }
+
+            if (arg == y_getter) {
+                return y_val;
+            }
+
+            return vector;
+        }
+
+        return vector;
+    }
+
+    fun constructor(x_arg, y_arg) {
+        return closure_maker(x_arg, y_arg);
+    }
+
+    fun adder (left, right) {
+        var x1 = left(x_getter);
+        var x2 = right(x_getter);
+
+        var y1 = left(y_getter);
+        var y2 = right(y_getter);
+
+        return closure_maker(x1 + x2, y1 + y2);
+    }
+
+    create = constructor;
+    add = adder;
+    getX = x_getter;
+    getY = y_getter;
+}
+init();
+
+var v1 = create(1, 3);
+var v2 = create(2, 4);
+
+var v3 = add(v1, v2);
+var v4 = add(v2, v2);
+
+print getX(v1);
+print getY(v1);
+print "";
+
+print getX(v2);
+print getY(v2);
+print "";
+
+print getX(v3);
+print getY(v3);
+print "";
+
+print getX(v4);
+print getY(v4);
+print "";
